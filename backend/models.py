@@ -1,5 +1,5 @@
 from . import db, socketio
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from sqlalchemy.dialects.sqlite import JSON
 import secrets
 import json
@@ -242,3 +242,83 @@ def create_default_scene() -> Dict:
             }
         ]
     }
+
+
+class Scene(db.Model):
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(256), nullable=False)
+    current_state = db.Column(JSON, nullable=False, default={})
+    initial_state = db.Column(JSON, nullable=False, default={})
+    nodes = db.Column(JSON, nullable=False, default=[])
+    edges = db.Column(JSON, nullable=False, default=[])
+    frame_id = db.Column(db.Integer, db.ForeignKey('frame.id'), nullable=False)
+
+    frame = db.relationship('Frame', backref=db.backref('frame_scenes', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'current_state': self.current_state,
+            'initial_state': self.initial_state,
+            'nodes': self.nodes,
+            'edges': self.edges,
+            'frame_id': self.frame_id
+        }
+
+
+def new_scene(name: str, frame_id: int, current_state: Optional[Dict] = None,
+              initial_state: Optional[Dict] = None, nodes: Optional[List] = None,
+              edges: Optional[List] = None) -> Scene:
+    scene = Scene(
+        name=name,
+        frame_id=frame_id,
+        current_state=current_state or {},
+        initial_state=initial_state or current_state or {},
+        nodes=nodes or [],
+        edges=edges or []
+    )
+
+    db.session.add(scene)
+    db.session.commit()
+    socketio.emit('new_scene', scene.to_dict())
+    return scene
+
+
+def update_scene(scene_id: int, name: Optional[str] = None,
+                 current_state: Optional[Dict] = None, initial_state: Optional[Dict] = None,
+                 nodes: Optional[List] = None, edges: Optional[List] = None) -> Optional[Scene]:
+    scene = Scene.query.get(scene_id)
+    if not scene:
+        return None
+
+    if name:
+        scene.name = name
+    if current_state:
+        scene.current_state = current_state
+    if initial_state:
+        scene.initial_state = initial_state
+    if nodes:
+        scene.nodes = nodes
+    if edges:
+        scene.edges = edges
+
+    db.session.add(scene)
+    db.session.commit()
+    socketio.emit('update_scene', scene.to_dict())
+    return scene
+
+
+def delete_scene(scene_id: int) -> bool:
+    scene = Scene.query.get(scene_id)
+    if not scene:
+        return False
+
+    db.session.delete(scene)
+    db.session.commit()
+    socketio.emit('delete_scene', {'id': scene_id})
+    return True
+
+
+def get_scene(scene_id: int) -> Optional[Scene]:
+    return Scene.query.get(scene_id)

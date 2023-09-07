@@ -127,6 +127,9 @@ def new_frame():
     server_host = request.form['server_host']
     device = request.form['device']
     frame = models.new_frame(frame_host, server_host, device)
+
+    models.new_scene("Default scene", frame.id)
+
     return jsonify(frame=frame.to_dict())
 
 @app.route('/api/frames/<int:frame_id>', methods=['DELETE'])
@@ -156,3 +159,59 @@ def api_log():
             models.process_log(frame, log)
 
     return 'OK', 200
+
+
+@app.route("/api/scenes", methods=["POST"])
+def create_scene():
+    name = request.json.get('name')
+    frame_id = request.json.get('frame_id')
+    current_state = request.json.get('current_state')
+    initial_state = request.json.get('initial_state')
+    nodes = request.json.get('nodes')
+    edges = request.json.get('edges')
+
+    scene = models.new_scene(name, frame_id, current_state, initial_state, nodes, edges)
+    return jsonify(scene=scene.to_dict()), 201
+
+
+@app.route("/api/scenes/<int:scene_id>", methods=["GET"])
+def get_single_scene(scene_id: int):
+    scene = models.get_scene(scene_id)
+    if not scene:
+        return jsonify({'message': 'Scene not found'}), 404
+    return jsonify(scene=scene.to_dict())
+
+
+@app.route("/api/scenes/<int:scene_id>", methods=["PUT"])
+def modify_scene(scene_id: int):
+    name = request.json.get('name')
+    current_state = request.json.get('current_state')
+    initial_state = request.json.get('initial_state')
+    nodes = request.json.get('nodes')
+    edges = request.json.get('edges')
+
+    scene = models.update_scene(scene_id, name, current_state, initial_state, nodes, edges)
+    if not scene:
+        return jsonify({'message': 'Scene not found'}), 404
+    return jsonify(scene=scene.to_dict())
+
+
+@app.route("/api/scenes/<int:scene_id>", methods=["DELETE"])
+def remove_scene(scene_id: int):
+    success = models.delete_scene(scene_id)
+    if success:
+        return jsonify({'message': 'Scene deleted successfully'}), 200
+    else:
+        return jsonify({'message': 'Scene not found'}), 404
+
+
+@app.route('/api/frames/<int:id>/scenes', methods=['GET'])
+def get_scenes_by_frame(id: int):
+    frame = models.Frame.query.get_or_404(id)
+
+    # Assuming each scene has a foreign key 'frame_id' linking to the Frame
+    scenes = models.Scene.query.filter_by(frame_id=frame.id).all()
+
+    scenes_list = [scene.to_dict() for scene in scenes]
+
+    return jsonify(scenes=scenes_list)
