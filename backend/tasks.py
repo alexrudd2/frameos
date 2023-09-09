@@ -46,15 +46,6 @@ def handle_signal(signum, frame):
 signal.signal(signal.SIGTERM, handle_signal)
 signal.signal(signal.SIGINT, handle_signal)
 
-@huey.task()
-def reset_frame(id: int):
-    with app.app_context():
-        frame = Frame.query.get_or_404(id)
-        if frame.status != 'uninitialized':
-            frame.status = 'uninitialized'
-            update_frame(frame)
-        log(id, "admin", "Resetting frame status to 'uninitialized'")
-
 def get_ssh_connection(frame: Frame) -> SSHClient:
     log(frame.id, "stdinfo", f"Connecting via SSH to {frame.ssh_user}@{frame.frame_host}")
     ssh = SSHClient()

@@ -56,11 +56,6 @@ def refresh_frame(id: int):
     else:
         return jsonify({"error": "Unable to refresh frame"}), response.status_code
 
-@app.route('/api/frames/<int:id>/reset', methods=['POST'])
-def reset_frame(id: int):
-    tasks.reset_frame(id)
-    return 'Success', 200
-
 @app.route('/api/frames/<int:id>/restart', methods=['POST'])
 def restart_frame(id: int):
     tasks.restart_frame(id)
