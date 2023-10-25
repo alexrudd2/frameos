@@ -7,6 +7,7 @@ from threading import Lock
 from PIL import Image
 import RPi.GPIO as GPIO
 
+from drivers.displays.pimoroni_hyperpixel_2inch1_round import PimoroniHyperPixel2Inch1Round
 from .logger import Logger
 from .config import Config
 from .app_handler import AppHandler
@@ -180,17 +181,12 @@ class ImageHandler:
 
     def display_on(self):
         if self.config.device == 'pimoroni.hyperpixel2r':
-            GPIO.cleanup()
+            PimoroniHyperPixel2Inch1Round().display_on()
         self.is_display_on = True
 
     def display_off(self):
         if self.config.device == 'pimoroni.hyperpixel2r':
-            GPIO.setmode(GPIO.BCM)
-            pin = 19
-            GPIO.setup(pin, GPIO.OUT)
-            pwm = GPIO.PWM(pin, 1000)
-            pwm.start(0)
-            pwm.stop()
+            PimoroniHyperPixel2Inch1Round().display_off()
         self.is_display_on = False
 
     def display_toggle(self) -> bool:
