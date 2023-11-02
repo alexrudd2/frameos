@@ -1,7 +1,5 @@
-from drivers.displays import DisplayDriver, DisplayType
-import RPi.GPIO as GPIO
-
-from drivers.displays.mixins.frame_buffer import FrameBufferMixin
+from drivers import DisplayDriver, DisplayType
+from drivers.mixins.frame_buffer import FrameBufferMixin
 
 
 class PimoroniHyperPixel2Inch1Round(DisplayDriver, FrameBufferMixin):
@@ -12,6 +10,7 @@ class PimoroniHyperPixel2Inch1Round(DisplayDriver, FrameBufferMixin):
     inches = 2.1
 
     def display_off(self):
+        import RPi.GPIO as GPIO
         GPIO.setmode(GPIO.BCM)
         pin = 19
         GPIO.setup(pin, GPIO.OUT)
@@ -20,4 +19,5 @@ class PimoroniHyperPixel2Inch1Round(DisplayDriver, FrameBufferMixin):
         pwm.stop()
 
     def display_on(self):
+        import RPi.GPIO as GPIO
         GPIO.cleanup()

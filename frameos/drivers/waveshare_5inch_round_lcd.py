@@ -1,5 +1,5 @@
-from drivers.displays import DisplayDriver, DisplayType
-from drivers.displays.mixins.frame_buffer import FrameBufferMixin
+from drivers import DisplayDriver, DisplayType
+from drivers.mixins.frame_buffer import FrameBufferMixin
 
 
 class Waveshare5inchRoundLcd(DisplayDriver, FrameBufferMixin):
