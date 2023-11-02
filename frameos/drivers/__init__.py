@@ -1,8 +1,12 @@
+from abc import abstractmethod, ABC
+from typing import Optional
+
 from frame import Logger
 from enum import Enum
+from PIL import Image
 
 
-class Driver:
+class Driver(ABC):
     logger: Logger
 
     def __init__(self, logger: Logger):
@@ -19,4 +23,16 @@ class DisplayDriver(Driver):
     display_type: DisplayType = None
     width: int = None
     height: int = None
+    color: Optional[str] = None
 
+    @abstractmethod
+    def render_image(self, image: Image):
+        pass
+
+    @abstractmethod
+    def display_off(self):
+        pass
+
+    @abstractmethod
+    def display_on(self):
+        pass
